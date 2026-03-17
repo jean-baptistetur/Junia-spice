@@ -1,33 +1,36 @@
 package com.jad;
 
 import com.jad.connector.DBConnector;
-import com.jad.service.MachineToolService;
-import com.jad.service.OperationTypeService;
-import com.jad.service.ProductRecipeService;
-import com.jad.service.ProductService;
+import com.jad.scheduler.JsonPlanGenerator;
+import com.jad.scheduler.SmartMonkeyScheduler;
+import com.jad.scheduler.model.MachineSchedule;
 
 import java.sql.SQLException;
+import java.util.List;
 
 public class Main {
-    public static void main(String[] args) throws SQLException {
-        MachineToolService machineToolService = new MachineToolService(DBConnector.getInstance());
-        machineToolService.getAll().forEach(System.out::println);
+    public static void main(String[] args) throws Exception {
+        int idProduct = 200;     // ID du produit à fabriquer
+        double quantity = 1000;  // Quantité souhaitée
+        String outputFile = "plan_fabrication.json";
 
-        OperationTypeService operationTypeService = new OperationTypeService(DBConnector.getInstance());
-        operationTypeService.getAll().forEach(System.out::println);
-        operationTypeService.getMachineToolsForOperationTypeId(1).forEach(System.out::println);
+        DBConnector db = DBConnector.getInstance();
 
-        ProductService productService = new ProductService(DBConnector.getInstance());
-        productService.getAll().forEach(System.out::println);
+        SmartMonkeyScheduler scheduler = new SmartMonkeyScheduler(db);
+        List<MachineSchedule> plan = scheduler.schedule(idProduct, quantity);
 
-        ProductRecipeService productReportService = new ProductRecipeService(DBConnector.getInstance());
-        productReportService.getAll().forEach(System.out::println);
+        System.out.println("\n=== PLANNING GÉNÉRÉ ===");
+        plan.forEach(ms -> {
+            System.out.println("Machine " + ms.getIdMachineTool()
+                    + " → " + ms.getOrders().size() + " ordre(s), charge=" + ms.getTotalLoad());
+        });
 
-        System.out.println(machineToolService.getById(1).toPrettyJson());
-        System.out.println(operationTypeService.getById(1).toPrettyJson());
-        System.out.println(productService.getById(1).toPrettyJson());
-        System.out.println(productReportService.getByIdProduct(200).toPrettyJson());
+        String json = JsonPlanGenerator.toJson(plan);
+        System.out.println("\n=== JSON ===");
+        System.out.println(json);
 
-        DBConnector.getInstance().disconnect();
+        JsonPlanGenerator.saveToFile(plan, outputFile);
+
+        db.disconnect();
     }
 }
