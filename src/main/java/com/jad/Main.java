@@ -14,14 +14,14 @@ public class Main {
         String outputFile = "plan_fabrication.json";
 
         DBConnector db = DBConnector.getInstance();
-
         SmartMonkeyScheduler scheduler = new SmartMonkeyScheduler(db);
         List<MachineSchedule> plan = scheduler.schedule(idProduct, quantity);
 
         System.out.println("\n=== PLANNING GÉNÉRÉ ===");
-        for (MachineSchedule ms : plan) {
-            System.out.println("Machine " + ms.getIdMachineTool()
-                    + " → " + ms.getOrders().size() + " ordre(s), charge=" + ms.getTotalLoad());
+        for (MachineSchedule machinePlan : plan) {
+            System.out.println("Machine " + machinePlan.getIdMachineTool()
+                    + " → " + machinePlan.getOrders().size() + " ordre(s)"
+                    + ", charge=" + machinePlan.getTotalLoad());
         }
 
         String json = JsonPlanGenerator.toJson(plan);
@@ -29,7 +29,6 @@ public class Main {
         System.out.println(json);
 
         JsonPlanGenerator.saveToFile(plan, outputFile);
-
         db.disconnect();
     }
 }
