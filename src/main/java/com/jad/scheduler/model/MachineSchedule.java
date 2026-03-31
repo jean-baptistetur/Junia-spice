@@ -18,10 +18,6 @@ public class MachineSchedule {
     }
 
     public double getTotalLoad() {
-        double total = 0.0;
-        for (ManufactureOrder order : orders) {
-            total = total + order.getQuantity();
-        }
-        return total;
+        return orders.size();
     }
 }

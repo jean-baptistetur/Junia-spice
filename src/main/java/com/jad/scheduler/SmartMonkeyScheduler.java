@@ -74,25 +74,12 @@ public class SmartMonkeyScheduler {
             return;
         }
 
-        double remaining = grossQuantity;
-        while (remaining > 0) {
-            MachineTool chosenMachine = findLeastLoadedMachine(machines);
+        MachineTool chosenMachine = findLeastLoadedMachine(machines);
+        MachineSchedule machinePlan = findOrCreateMachinePlan(chosenMachine.getId());
+        int orderNumber = machinePlan.getOrders().size();
+        machinePlan.addOrder(new ManufactureOrder(orderNumber, idProduct, grossQuantity));
 
-            double lot = remaining;
-            if (lot > chosenMachine.getMaxQuantity()) {
-                lot = chosenMachine.getMaxQuantity();
-            }
-            if (lot < chosenMachine.getMinQuantity()) {
-                lot = chosenMachine.getMinQuantity();
-            }
-            remaining = remaining - lot;
-
-            MachineSchedule machinePlan = findOrCreateMachinePlan(chosenMachine.getId());
-            int orderNumber = machinePlan.getOrders().size();
-            machinePlan.addOrder(new ManufactureOrder(orderNumber, idProduct, lot));
-
-            System.out.println("[Singe] " + product.getLabel() + " x" + lot + " → " + chosenMachine.getLabel());
-        }
+        System.out.println("[Singe] " + product.getLabel() + " x" + grossQuantity + " → " + chosenMachine.getLabel());
     }
 
     private MachineTool findLeastLoadedMachine(List<MachineTool> machines) {
